@@ -205,7 +205,9 @@ def main(config: _config.TrainConfig):
     rng = jax.random.key(config.seed)
     train_rng, init_rng = jax.random.split(rng)
 
-    mesh = sharding.make_mesh(config.fsdp_devices)
+    fsdp_devices = jax.device_count() if config.fsdp_devices == "auto" else config.fsdp_devices
+    logging.info(f"Using {fsdp_devices} FSDP devices.")
+    mesh = sharding.make_mesh(fsdp_devices)
     data_sharding = jax.sharding.NamedSharding(mesh, jax.sharding.PartitionSpec(sharding.DATA_AXIS))
     replicated_sharding = jax.sharding.NamedSharding(mesh, jax.sharding.PartitionSpec())
 
@@ -226,12 +228,13 @@ def main(config: _config.TrainConfig):
     batch = next(data_iter)
     logging.info(f"Initialized data loader:\n{training_utils.array_tree_to_info(batch)}")
 
-    # Log images from first batch to sanity check.
-    images_to_log = [
-        wandb.Image(np.concatenate([np.array(img[i]) for img in batch[0].images.values()], axis=1))
-        for i in range(min(5, len(next(iter(batch[0].images.values())))))
-    ]
-    wandb.log({"camera_views": images_to_log}, step=0)
+    # Log images from first batch to sanity check. Avoid gathering sharded GPU arrays when W&B is disabled.
+    if config.wandb_enabled:
+        images_to_log = [
+            wandb.Image(np.concatenate([np.array(img[i]) for img in batch[0].images.values()], axis=1))
+            for i in range(min(5, len(next(iter(batch[0].images.values())))))
+        ]
+        wandb.log({"camera_views": images_to_log}, step=0)
 
     train_state, train_state_sharding = init_train_state(config, init_rng, mesh, resume=resuming)
     jax.block_until_ready(train_state)

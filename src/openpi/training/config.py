@@ -24,6 +24,7 @@ import openpi.shared.download as _download
 import openpi.shared.normalize as _normalize
 import openpi.training.droid_rlds_dataset as droid_rlds_dataset
 import openpi.training.misc.polaris_config as polaris_config
+import openpi.training.misc.quadruped_config as quadruped_config
 import openpi.training.misc.roboarena_config as roboarena_config
 import openpi.training.optimizer as _optimizer
 import openpi.training.weight_loaders as weight_loaders
@@ -529,10 +530,10 @@ class TrainConfig:
     policy_metadata: dict[str, Any] | None = None
 
     # If the value is greater than 1, FSDP will be enabled and shard across number of specified devices; overall
-    # device memory will be reduced but training could potentially be slower.
+    # device memory will be reduced but training could potentially be slower. Set to "auto" to use all visible devices.
     # eg. if total device is 4 and fsdp devices is 2; then the model will shard to 2 devices and run
     # data parallel between 2 groups of devices.
-    fsdp_devices: int = 1
+    fsdp_devices: int | Literal["auto"] = 1
 
     @property
     def assets_dirs(self) -> pathlib.Path:
@@ -966,6 +967,7 @@ _CONFIGS = [
         wandb_enabled=False,
     ),
     # RoboArena & PolaRiS configs.
+    *quadruped_config.get_quadruped_configs(),
     *roboarena_config.get_roboarena_configs(),
     *polaris_config.get_polaris_configs(),
 ]
