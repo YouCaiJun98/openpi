@@ -1,4 +1,4 @@
-"""Serve the latest quadruped checkpoint over WebSocket.
+"""Serve the trained quadruped checkpoint over WebSocket.
 
 Example:
     uv run examples/quadruped/serve_checkpoint.py
@@ -20,10 +20,12 @@ from openpi.training import config as _config
 class Args:
     """Arguments for serving a trained quadruped policy."""
 
-    config_name: str = "pi0_quadruped_synthetic_base"
-    exp_name: str = "synthetic_base"
+    config_name: str = "pi0_quadruped_isaac_finetune"
+    exp_name: str = "m20_isaac_finetune_v1"
     checkpoint_base_dir: pathlib.Path = pathlib.Path("checkpoints")
-    checkpoint_dir: pathlib.Path | None = None
+    checkpoint_dir: pathlib.Path | None = pathlib.Path(
+        "checkpoints/pi0_quadruped_isaac_finetune/m20_isaac_finetune_v1/19999"
+    )
     host: str = "0.0.0.0"
     port: int = 8000
     default_prompt: str | None = None

@@ -15,6 +15,9 @@ import openpi.shared.download as download
 import openpi.training.weight_loaders as weight_loaders
 import openpi.transforms as _transforms
 
+ISAAC_SINGLE_TRAJECTORY_REPO_ID = "openpi/m20_quadruped_isaac_single_trajectory"
+ISAAC_REPO_ID = "openpi/m20_quadruped_isaac"
+
 
 @dataclasses.dataclass(frozen=True)
 class QuadrupedCheckpointWeightLoader(weight_loaders.WeightLoader):
@@ -123,6 +126,107 @@ def get_quadruped_configs():
             fsdp_devices="auto",
             overwrite=True,
             exp_name="synthetic_base",
+            wandb_enabled=False,
+        ),
+        TrainConfig(
+            name="pi0_quadruped_isaac_single",
+            model=quadruped_pi0_config.QuadrupedPi0Config(
+                paligemma_variant="dummy",
+                action_expert_variant="dummy",
+            ),
+            data=LeRobotQuadrupedDataConfig(
+                repo_id=ISAAC_SINGLE_TRAJECTORY_REPO_ID,
+                base_config=DataConfig(prompt_from_task=True),
+            ),
+            num_train_steps=10,
+            batch_size=2,
+            num_workers=0,
+            overwrite=True,
+            exp_name="isaac_single",
+            wandb_enabled=False,
+        ),
+        TrainConfig(
+            name="pi0_quadruped_isaac_single_base",
+            model=model,
+            data=LeRobotQuadrupedDataConfig(
+                repo_id=ISAAC_SINGLE_TRAJECTORY_REPO_ID,
+                base_config=DataConfig(prompt_from_task=True),
+            ),
+            weight_loader=QuadrupedCheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
+            freeze_filter=model.get_quadruped_freeze_filter(),
+            num_train_steps=1,
+            batch_size=2,
+            num_workers=0,
+            fsdp_devices="auto",
+            overwrite=True,
+            exp_name="isaac_single_base",
+            wandb_enabled=False,
+        ),
+        TrainConfig(
+            name="pi0_quadruped_isaac",
+            model=quadruped_pi0_config.QuadrupedPi0Config(
+                paligemma_variant="dummy",
+                action_expert_variant="dummy",
+            ),
+            data=LeRobotQuadrupedDataConfig(
+                repo_id=ISAAC_REPO_ID,
+                base_config=DataConfig(prompt_from_task=True),
+            ),
+            num_train_steps=10,
+            batch_size=2,
+            num_workers=0,
+            overwrite=True,
+            exp_name="isaac",
+            wandb_enabled=False,
+        ),
+        TrainConfig(
+            name="pi0_quadruped_isaac_base",
+            model=model,
+            data=LeRobotQuadrupedDataConfig(
+                repo_id=ISAAC_REPO_ID,
+                base_config=DataConfig(prompt_from_task=True),
+            ),
+            weight_loader=QuadrupedCheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
+            freeze_filter=model.get_quadruped_freeze_filter(),
+            num_train_steps=1,
+            batch_size=2,
+            num_workers=0,
+            fsdp_devices="auto",
+            overwrite=True,
+            exp_name="isaac_base",
+            wandb_enabled=False,
+        ),
+        TrainConfig(
+            name="pi0_quadruped_isaac_finetune",
+            model=model,
+            data=LeRobotQuadrupedDataConfig(
+                repo_id=ISAAC_REPO_ID,
+                base_config=DataConfig(prompt_from_task=True),
+            ),
+            weight_loader=QuadrupedCheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
+            freeze_filter=model.get_quadruped_freeze_filter(),
+            num_train_steps=20_000,
+            batch_size=8,
+            num_workers=2,
+            fsdp_devices="auto",
+            save_interval=1_000,
+            exp_name="m20_isaac_finetune",
+            wandb_enabled=False,
+        ),
+        TrainConfig(
+            name="pi0_quadruped_isaac_full_finetune",
+            model=model,
+            data=LeRobotQuadrupedDataConfig(
+                repo_id=ISAAC_REPO_ID,
+                base_config=DataConfig(prompt_from_task=True),
+            ),
+            weight_loader=QuadrupedCheckpointWeightLoader("gs://openpi-assets/checkpoints/pi0_base/params"),
+            num_train_steps=20_000,
+            batch_size=8,
+            num_workers=2,
+            fsdp_devices="auto",
+            save_interval=1_000,
+            exp_name="m20_isaac_full_finetune",
             wandb_enabled=False,
         ),
     ]
